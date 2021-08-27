@@ -34,4 +34,7 @@ public abstract class Group {
         }
         return null;
     }
+
+    // Make sure subtypes override this method
+    public abstract String toString();
 }
