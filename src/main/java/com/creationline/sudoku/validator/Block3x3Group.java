@@ -11,6 +11,10 @@ class Block3x3Group extends Group {
     private final int x;
     private final int y;
 
+    /**
+     * @param x
+     *      x={0,3,6}
+     */
     public Block3x3Group(Board board, int x, int y) {
         super(board);
         assert x%3==0 && y%3==0;

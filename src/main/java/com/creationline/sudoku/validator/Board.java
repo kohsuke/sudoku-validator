@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
@@ -45,6 +46,17 @@ public class Board {
             range(0,9).mapToObj(i -> new HorizontalGroup(this,i)),
             range(0,9).mapToObj(i -> new VerticalGroup(this,i)),
             range(0,9).mapToObj(i -> new Block3x3Group(this,(i/3)*3,(i%3)*3)));
+    }
+
+    /**
+     * Find three groups that govern the given cell.
+     */
+    public Stream<Group> groupsOf(int x, int y) {
+        return Stream.of(
+            new HorizontalGroup(this,y),
+            new VerticalGroup(this,x),
+            new Block3x3Group(this,(x/3)*3, (y/3)*3)
+        );
     }
 
     @SafeVarargs
@@ -115,6 +127,36 @@ public class Board {
                 walker.accept(x,y);
             }
         }
+    }
+
+    /**
+     * True if every cell of the digit is filled with a number
+     * and no cell returns true from {@link #isEmpty(int, int)}.
+     */
+    public boolean isFull() {
+        var isEmpty = new AtomicBoolean();
+        walk((x,y) -> {
+            if (isEmpty(x,y))
+                isEmpty.set(true);
+        });
+        return !isEmpty.get();
+    }
+
+    public char charAt(int x, int y) {
+        int n = get(x, y);
+        return n==EMPTY ? '.' : (char)('0'+n);
+    }
+
+    @Override
+    public String toString() {
+        var buf = new StringBuilder();
+        for (int y=0; y<9; y++) {
+            for (int x=0; x<9; x++) {
+                buf.append(charAt(x,y));
+            }
+            buf.append('\n');
+        }
+        return buf.toString();
     }
 
     /**
