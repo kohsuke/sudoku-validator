@@ -10,9 +10,9 @@ import java.io.InputStreamReader;
 public class App {
     public static void main(String[] args) throws IOException {
         try (var r = new InputStreamReader(System.in)) {
-            Board b = Board.read(r);
+            var board = Board.read(r);
 
-            b.findInconsistencies()
+            new InconsistencyChecker(board).findInconsistencies()
                 .forEach(Inconsistency::report);
         }
     }

@@ -6,17 +6,17 @@ import java.util.stream.IntStream;
 /**
  * @author Kohsuke Kawaguchi
  */
-class HorizontalGroup extends Group {
+class HorizontalGroup<T> extends Group<T> {
     final int y;
 
-    public HorizontalGroup(Board board, int y) {
+    public HorizontalGroup(Board<T> board, int y) {
         super(board);
         this.y = y;
     }
 
     @Override
-    public IntStream cells() {
-        return IntStream.range(0,9).map(x -> board.get(x,y));
+    public Iterable<T> cells() {
+        return () -> IntStream.range(0,9).mapToObj(x -> board.get(x,y)).iterator();
     }
 
     @Override

@@ -3,11 +3,12 @@ package com.creationline.sudoku.validator;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 import static java.util.stream.IntStream.*;
@@ -15,19 +16,21 @@ import static java.util.stream.IntStream.*;
 /**
  * @author Kohsuke Kawaguchi
  */
-public class Board {
-    private final int[] cells = new int[9*9];
+public class Board<T> {
+    // this is type unsafe but since it never leaks outside this class this is OK
+    // Array.newInstance requires an explicit type casting anyway
+    private final T[] cells = (T[])new Object[9*9];
 
-    public int get(int x, int y) {
+    public T get(int x, int y) {
         rangeRange(x);
         rangeRange(y);
         return cells[y*9+x];
     }
 
-    public void set(int x, int y, int value) {
+    public void set(int x, int y, T value) {
         rangeRange(x);
         rangeRange(y);
-        rangeRange(value);
+//        rangeRange(value);
         cells[y*9+x] = value;
     }
 
@@ -51,11 +54,11 @@ public class Board {
     /**
      * Find three groups that govern the given cell.
      */
-    public Stream<Group> groupsOf(int x, int y) {
-        return Stream.of(
-            new HorizontalGroup(this,y),
-            new VerticalGroup(this,x),
-            new Block3x3Group(this,(x/3)*3, (y/3)*3)
+    public Iterable<Group<T>> groupsOf(int x, int y) {
+        return List.of(
+            new HorizontalGroup<>(this, y),
+            new VerticalGroup<>(this, x),
+            new Block3x3Group<>(this, (x / 3) * 3, (y / 3) * 3)
         );
     }
 
@@ -64,17 +67,11 @@ public class Board {
         return Arrays.stream(items).reduce(Stream.empty(), Stream::concat);
     }
 
-    public Stream<Inconsistency> findInconsistencies() {
-        return listConstraintGroup()
-            .map(Group::findInconsistency)
-            .filter(Objects::nonNull);
-    }
-
-    public static Board read(String[] lines) {
+    public static Board<Integer> read(String[] lines) {
         if (lines.length!=9)
             throw new IllegalArgumentException();
 
-        var board = new Board();
+        var board = new Board<Integer>();
         for (int y=0; y<9; y++) {
             var line = lines[y].replace(" ","");    // allow input to have whitespaces
             for (int x=0; x<9; x++) {
@@ -92,8 +89,8 @@ public class Board {
         return board;
     }
 
-    public static Board read(Reader r) throws IOException {
-        var board = new Board();
+    public static Board<Integer> read(Reader r) throws IOException {
+        var board = new Board<Integer>();
         try (var br = new BufferedReader(r)) {
             for (int y=0; y<9; y++) {
                 String str = br.readLine();
@@ -142,17 +139,13 @@ public class Board {
         return !isEmpty.get();
     }
 
-    public char charAt(int x, int y) {
-        int n = get(x, y);
-        return n==EMPTY ? '.' : (char)('0'+n);
-    }
-
     @Override
     public String toString() {
         var buf = new StringBuilder();
         for (int y=0; y<9; y++) {
             for (int x=0; x<9; x++) {
-                buf.append(charAt(x,y));
+                var c = get(x,y);
+                buf.append(c==EMPTY ? '.' : c.toString());
             }
             buf.append('\n');
         }
@@ -162,5 +155,5 @@ public class Board {
     /**
      * Constant representing an empty cell.
      */
-    public static final int EMPTY = 0;
+    public final T EMPTY = null;
 }

@@ -2,12 +2,11 @@ package com.creationline.sudoku.validator;
 
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.stream.IntStream;
 
 /**
  * @author Kohsuke Kawaguchi
  */
-class Block3x3Group extends Group {
+class Block3x3Group<T> extends Group<T> {
     private final int x;
     private final int y;
 
@@ -15,7 +14,7 @@ class Block3x3Group extends Group {
      * @param x
      *      x={0,3,6}
      */
-    public Block3x3Group(Board board, int x, int y) {
+    public Block3x3Group(Board<T> board, int x, int y) {
         super(board);
         assert x%3==0 && y%3==0;
         this.x = x;
@@ -23,16 +22,16 @@ class Block3x3Group extends Group {
     }
 
     @Override
-    public IntStream cells() {
+    public Iterable<T> cells() {
 //        return IntStream.range(0,9).map(i -> board.get(x+i/3,y+i%3));
 
-        var cells = new ArrayList<Integer>();
+        var cells = new ArrayList<T>();
         for (int i=0; i<3; i++) {
             for (int j=0; j<3; j++) {
                 cells.add(board.get(x+i, y+j));
             }
         }
-        return cells.stream().mapToInt(x -> x);
+        return cells;
     }
 
     @Override
@@ -44,7 +43,7 @@ class Block3x3Group extends Group {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Block3x3Group that = (Block3x3Group) o;
+        Block3x3Group<?> that = (Block3x3Group<?>) o;
         return x == that.x &&
             y == that.y;
     }

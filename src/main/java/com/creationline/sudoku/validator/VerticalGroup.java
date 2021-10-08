@@ -6,17 +6,17 @@ import java.util.stream.IntStream;
 /**
  * @author Kohsuke Kawaguchi
  */
-class VerticalGroup extends Group {
+class VerticalGroup<T> extends Group<T> {
     final int x;
 
-    public VerticalGroup(Board board, int x) {
+    public VerticalGroup(Board<T> board, int x) {
         super(board);
         this.x = x;
     }
 
     @Override
-    public IntStream cells() {
-        return IntStream.range(0,9).map(y -> board.get(x, y));
+    public Iterable<T> cells() {
+        return () -> IntStream.range(0,9).mapToObj(y -> board.get(x, y)).iterator();
     }
 
     @Override
