@@ -12,7 +12,7 @@ public class App {
         try (var r = new InputStreamReader(System.in)) {
             var board = Board.read(r);
 
-            new InconsistencyChecker(board).findInconsistencies()
+            InconsistencyChecker.findInconsistencies(board)
                 .forEach(Inconsistency::report);
         }
     }

@@ -9,14 +9,15 @@ import java.util.stream.Stream;
 public class InconsistencyChecker {
     private final Board<Integer> board;
 
-    public InconsistencyChecker(Board<Integer> board) {
-        this.board = board;
+    public static Stream<Inconsistency> findInconsistencies(Board<Integer> board) {
+        var checker = new InconsistencyChecker(board);
+        return board.listConstraintGroup()
+            .map(checker::findInconsistencyIn)
+            .filter(Objects::nonNull);
     }
 
-    public Stream<Inconsistency> findInconsistencies() {
-        return board.listConstraintGroup()
-            .map(this::findInconsistencyIn)
-            .filter(Objects::nonNull);
+    private InconsistencyChecker(Board<Integer> board) {
+        this.board = board;
     }
 
     /**

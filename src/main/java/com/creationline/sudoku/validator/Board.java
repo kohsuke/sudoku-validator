@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
 import static java.util.stream.IntStream.*;
@@ -20,6 +22,18 @@ public class Board<T> {
     // this is type unsafe but since it never leaks outside this class this is OK
     // Array.newInstance requires an explicit type casting anyway
     private final T[] cells = (T[])new Object[9*9];
+
+    public Board() {
+    }
+
+    /**
+     * Create a new board by transforming another.
+     */
+    public <U> Board(Board<U> base, Function<U,T> mapper) {
+        walk((x,y) ->
+            set(x,y,mapper.apply(base.get(x,y)))
+        );
+    }
 
     public T get(int x, int y) {
         rangeRange(x);
@@ -118,6 +132,9 @@ public class Board<T> {
         return that;
     }
 
+    /**
+     * Iterates through all cells of the board.
+     */
     public void walk(BiConsumer<Integer,Integer> walker) {
         for (int y=0; y<9; y++) {
             for (int x=0; x<9; x++) {
@@ -156,4 +173,5 @@ public class Board<T> {
      * Constant representing an empty cell.
      */
     public final T EMPTY = null;
+
 }

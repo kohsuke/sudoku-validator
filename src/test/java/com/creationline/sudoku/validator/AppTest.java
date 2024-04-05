@@ -1,15 +1,15 @@
 package com.creationline.sudoku.validator;
 
-import static java.util.Collections.*;
-import static java.util.stream.Collectors.*;
-import static org.junit.Assert.assertTrue;
-
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static com.creationline.sudoku.validator.InconsistencyChecker.*;
+import static java.util.Collections.*;
+import static java.util.stream.Collectors.*;
 
 /**
  * What needs to be covered in these tests?
@@ -35,7 +35,7 @@ public class AppTest
             "....8..79"
         });
 
-        Assert.assertEquals(b.findInconsistencies().collect(toList()), emptyList());
+        Assert.assertEquals(findInconsistencies(b).collect(toList()), emptyList());
     }
 
     /**
@@ -71,10 +71,10 @@ public class AppTest
         }
     }
 
-    void assertInconsistenciesOf(Board b, Inconsistency... expected) {
+    void assertInconsistenciesOf(Board<Integer> b, Inconsistency... expected) {
         Assert.assertEquals(
             List.of(expected),
-            b.findInconsistencies().collect(toList())
+            findInconsistencies(b).collect(toList())
         );
     }
 
