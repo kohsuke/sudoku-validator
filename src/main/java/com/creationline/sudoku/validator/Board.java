@@ -8,7 +8,6 @@ import java.io.Reader;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static java.util.stream.IntStream.*;
@@ -46,12 +45,12 @@ public class Board<T> {
             throw new IllegalArgumentException("Value out of range: "+i);
     }
 
-    public Stream<Group> listConstraintGroup() {
+    public Stream<Group<T>> listConstraintGroup() {
         // TODO: range(0,9) x3 is redundant
         return concat(
-            range(0,9).mapToObj(i -> new HorizontalGroup(this,i)),
-            range(0,9).mapToObj(i -> new VerticalGroup(this,i)),
-            range(0,9).mapToObj(i -> new Block3x3Group(this,(i/3)*3,(i%3)*3)));
+            range(0,9).mapToObj(i -> new HorizontalGroup<>(this,i)),
+            range(0,9).mapToObj(i -> new VerticalGroup<>(this,i)),
+            range(0,9).mapToObj(i -> new Block3x3Group<>(this,(i/3)*3,(i%3)*3)));
     }
 
     /**
@@ -152,6 +151,10 @@ public class Board<T> {
         return !allCellIs((x,y,c) -> !predicate.apply(x,y,c));
     }
 
+    public Stream<T> cells() {
+        return Stream.of(cells);
+    }
+
     /**
      * Formats this board into a string by formatting individual cells.
      * The printer is expected to produce the same dimension for every cell.
@@ -190,5 +193,4 @@ public class Board<T> {
      * Constant representing an empty cell.
      */
     public final T EMPTY = null;
-
 }

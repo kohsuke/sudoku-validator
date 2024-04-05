@@ -14,7 +14,7 @@ import java.util.Optional;
  */
 public final class Cell {
     private final Board<Cell> board;
-    private final int x,y;
+    public final int x,y;
 
     private final BitSet possibilities = new BitSet(10);
 
@@ -27,6 +27,14 @@ public final class Cell {
         this.x = x;
         this.y = y;
         possibilities.set(1,10,true);
+    }
+
+    /**
+     * Overwrites the state to that of the given cell.
+     */
+    public void updateTo(Cell c) {
+        this.possibilities.clear();
+        this.possibilities.or(c.possibilities);
     }
 
     /**
