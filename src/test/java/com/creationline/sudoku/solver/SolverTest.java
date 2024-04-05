@@ -1,10 +1,17 @@
 package com.creationline.sudoku.solver;
 
 import com.creationline.sudoku.validator.Board;
+import com.creationline.sudoku.validator.Inconsistency;
+import com.creationline.sudoku.validator.InconsistencyChecker;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.io.StringReader;
+
+import static com.creationline.sudoku.validator.InconsistencyChecker.*;
+import static java.util.Collections.*;
+import static java.util.stream.Collectors.*;
 
 /**
  * @author Kohsuke Kawaguchi
@@ -69,16 +76,31 @@ public class SolverTest {
 
     @Test
     public void medium() throws Exception {
+        // solution
+        var x = Board.read(new StringReader("""
+            374965821
+            182374569
+            956128437
+            529641378
+            731582946
+            648739215
+            463857192
+            215496783
+            897213654
+            """));
+        Assert.assertEquals(findInconsistencies(x).collect(toList()), emptyList());
+
+        // this one has multiple solutions!
         solve("""
-            .....96.3
-            ......9..
-            6..8.1.57
-            9.6.1.3.8
-            34.92....
-            .5...6...
-            46.......
-            28.3...4.
-            ..5..41.6
+            .7...582.
+            ...374569
+            .561...37
+            ..96.....
+            .31..294.
+            ......215
+            .6....1..
+            ....9....
+            ....1.6.4
             """);
     }
 
