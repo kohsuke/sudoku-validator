@@ -28,6 +28,8 @@ public class SolverTest {
     private void solve(String boardRep) throws UnsolvableBoardException, IOException {
         var b = Board.read(new StringReader(boardRep));
 
+        System.out.println(b);
+
         new Solver().solve(toSolve(b));
 
         System.out.println(b);

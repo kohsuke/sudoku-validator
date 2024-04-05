@@ -1,5 +1,7 @@
 package com.creationline.sudoku.validator;
 
+import com.creationline.sudoku.solver.Cell;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -20,15 +22,6 @@ public class Board<T> {
     private final T[] cells = (T[])new Object[9*9];
 
     public Board() {
-    }
-
-    /**
-     * Create a new board by transforming another.
-     */
-    public <U> Board(Board<U> base, Function<U,T> mapper) {
-        walk((x,y,c) ->
-            set(x,y,mapper.apply(base.get(x,y)))
-        );
     }
 
     public T get(int x, int y) {
@@ -120,9 +113,14 @@ public class Board<T> {
     /**
      * Swap X & Y axis
      */
-    public Board flipDiagonal() {
-        var that = new Board();
-        walk((x, y, c) -> that.set(y, x, c));
+    public Board<T> flipDiagonal() {
+        //noinspection SuspiciousNameCombination
+        return transform((x,y,c) -> get(y,x));
+    }
+
+    public <R> Board<R> transform(CellFunction<T,R> f) {
+        var that = new Board<R>();
+        walk((x, y, c) -> that.set(x, y, f.apply(x,y,c)));
         return that;
     }
 
@@ -142,12 +140,33 @@ public class Board<T> {
      * and no cell returns true from {@link #isEmpty(int, int)}.
      */
     public boolean allCellIs(CellFunction<T,Boolean> predicate) {
-        var r = new AtomicBoolean();
+        var r = new AtomicBoolean(true);
         walk((x,y,c) -> {
             if (!predicate.apply(x,y,c))
                 r.set(false);
         });
         return r.get();
+    }
+
+    /**
+     * Formats this board into a string by formatting individual cells.
+     * The printer is expected to produce the same dimension for every cell.
+     */
+    public String toString(CellFunction<T,String[]> cellPrinter) {
+        var buf = new StringBuilder();
+
+        var strs = this.transform(cellPrinter);
+        int height = strs.get(0,0).length;
+
+        for (int y=0; y<9; y++) {
+            for (int h=0; h<height; h++) {
+                for (int x=0; x<9; x++) {
+                    buf.append(strs.get(x,y)[h]);
+                }
+                buf.append('\n');
+            }
+        }
+        return buf.toString();
     }
 
     @Override

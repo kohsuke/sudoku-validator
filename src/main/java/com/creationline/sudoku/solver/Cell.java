@@ -1,9 +1,11 @@
 package com.creationline.sudoku.solver;
 
 import com.creationline.sudoku.validator.Board;
+import com.creationline.sudoku.validator.CellFunction;
 import com.creationline.sudoku.validator.Group;
 
 import java.util.BitSet;
+import java.util.Optional;
 
 /**
  * Keeps track of what digits are possible for a cell.
@@ -66,7 +68,13 @@ public final class Cell {
      * True if this cell is determined to be one digit.
      */
     public boolean isUnique() {
-        return possibilities.cardinality()==1;
+        var c = possibilities.cardinality();
+        assert c > 0;
+        return c == 1;
+    }
+
+    public Optional<Integer> uniqueDigit() {
+        return isUnique() ? Optional.of(possibilities.nextSetBit(0)) : Optional.empty();
     }
 
     /**
@@ -122,4 +130,24 @@ public final class Cell {
     public int[] possibilities() {
         return possibilities.stream().toArray();
     }
+
+    /**
+     * Print this cell for {@link Board#toString(CellFunction)}
+     */
+    public String[] print() {
+        return uniqueDigit().map(d -> {
+            // compact representation when the digit is determined to be one
+            return new String[]{"   ",String.format(" %d ",d),"   "};
+        }).orElseGet(() -> {
+            // more general "all possibilities" display
+            var buf = new StringBuilder();
+            for (int i=1; i<=9; i++) {
+                buf.append(canBe(i)?(char)('0'+i):'.');
+            }
+            var s = buf.toString();
+            return new String[]{s.substring(0,3),s.substring(3,6),s.substring(6,9)};
+
+        });
+    }
+    public static final CellFunction<Cell, String[]> PRINTER = (x,y,c) -> c.print();
 }
