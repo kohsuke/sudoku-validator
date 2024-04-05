@@ -1,9 +1,5 @@
 package com.creationline.sudoku.solver;
 
-import com.creationline.sudoku.validator.Board;
-import com.creationline.sudoku.validator.CellFunction;
-import com.creationline.sudoku.validator.Group;
-
 import java.util.BitSet;
 import java.util.Optional;
 
@@ -13,7 +9,7 @@ import java.util.Optional;
  * @author Kohsuke Kawaguchi
  */
 public final class Cell {
-    private final Board<Cell> board;
+    private final Board board;
     public final int x,y;
 
     private final BitSet possibilities = new BitSet(10);
@@ -22,7 +18,7 @@ public final class Cell {
     /**
      * Creates a new cell that can take any possible value from 1 to 9.
      */
-    public Cell(Board<Cell> board, int x, int y) {
+    public Cell(Board board, int x, int y) {
         this.board = board;
         this.x = x;
         this.y = y;
@@ -92,7 +88,7 @@ public final class Cell {
      */
     public void setOthersNotTo(int d) {
         assert is(d);
-        for (var g : board.groupsOf(x,y)) {
+        for (var g : board.groupsAt(x,y)) {
             for (var c : g.cells()) {
                 if (c!=this)
                     c.eliminate(d);
@@ -106,7 +102,7 @@ public final class Cell {
      */
     public boolean isPossible(int d) {
         // if another mutually exclusive cell is already 'd' then clearly that's not possible
-        for (var g : board.groupsOf(x,y)) {
+        for (var g : board.groupsAt(x,y)) {
             for (var c : g.cells()) {
                 if (c!=this && c.is(d))
                     return false;
@@ -121,14 +117,14 @@ public final class Cell {
      * TODO: reduce strength. Maybe document this further.
      */
     public boolean mustBe(int d) {
-        for (var g : board.groupsOf(x,y)) {
+        for (var g : board.groupsAt(x,y)) {
             if (mustBe(d, g))
                 return true;
         }
         return false;
     }
 
-    private boolean mustBe(int d, Group<Cell> g) {
+    private boolean mustBe(int d, Group g) {
         for (var c : g.cells()) {
             if (c!=this && c.canBe(d))
                 return false;
@@ -142,7 +138,7 @@ public final class Cell {
     }
 
     /**
-     * Print this cell for {@link Board#toString(CellFunction)}
+     * Print this cell for {@link Board#toString()}
      */
     public String[] print() {
         return uniqueDigit().map(d -> {
@@ -159,5 +155,4 @@ public final class Cell {
 
         });
     }
-    public static final CellFunction<Cell, String[]> PRINTER = (x,y,c) -> c.print();
 }

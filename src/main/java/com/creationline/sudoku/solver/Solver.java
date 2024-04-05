@@ -1,25 +1,13 @@
 package com.creationline.sudoku.solver;
 
-import com.creationline.sudoku.validator.Board;
-
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author Kohsuke Kawaguchi
  */
 public class Solver {
-    private Board<Cell> copy(Board<Cell> src) {
-        var dst = new Board<Cell>();
-        src.walk((x,y,c) -> {
-            var d = new Cell(dst,x,y);
-            dst.set(x,y,d);
-            d.updateTo(c);
 
-        });
-        return dst;
-    }
-
-    public void solve(Board<Cell> board) throws UnsolvableBoardException {
+    public void solve(Board board) throws UnsolvableBoardException {
         // TODO: find a link on the internet that talks about this algorithm and point to it
         int loop=0;
         while (true) {
@@ -30,7 +18,7 @@ public class Solver {
 
             var madeProgress = new AtomicBoolean();
 
-            board.walk((x, y, c) -> {
+            board.walk(c -> {
                 if (c.isUnique())
                     return; // nothing to do
                 for (int d : c.possibilities()) {
@@ -50,7 +38,7 @@ public class Solver {
             });
 
             System.out.println("loop #"+(++loop));
-            System.out.println(board.toString(Cell.PRINTER));
+            System.out.println(board);
 
             if (!madeProgress.get()) {
                 // we run out of deterministic moves
@@ -58,12 +46,12 @@ public class Solver {
 
                 var cell = board.cells().filter(c->!c.isUnique()).findFirst().orElseThrow();
                 for (int d : cell.possibilities()) {
-                    var boardCopy = copy(board);
+                    var boardCopy = new Board(board);
                     boardCopy.get(cell.x, cell.y).setTo(d);
                     try {
                         solve(boardCopy);
-                        board.walk((x,y,c) ->
-                            c.updateTo(boardCopy.get(x,y))
+                        board.walk(c ->
+                            c.updateTo(boardCopy.get(c.x,c.y))
                         );
                         return;
                     } catch (UnsolvableBoardException e) {
@@ -78,12 +66,12 @@ public class Solver {
         }
     }
 
-    private boolean isInconsistent(Board<Cell> board) {
-        return board.anyCellIs((x, y, c) -> c.isVoid());
+    private boolean isInconsistent(Board board) {
+        return board.anyCellIs(Cell::isVoid);
     }
 
-    private boolean isSolved(Board<Cell> board) {
-        return board.allCellIs((x, y, c) -> c.isUnique());
+    private boolean isSolved(Board board) {
+        return board.allCellIs(Cell::isUnique);
     }
 
 }

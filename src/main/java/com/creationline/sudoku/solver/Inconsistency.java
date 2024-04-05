@@ -1,4 +1,4 @@
-package com.creationline.sudoku.validator;
+package com.creationline.sudoku.solver;
 
 import java.util.Objects;
 
@@ -8,10 +8,10 @@ import java.util.Objects;
  * @author Kohsuke Kawaguchi
  */
 public class Inconsistency {
-    public final Group<Integer> group;
+    public final Group group;
     public final int digit;
 
-    public Inconsistency(Group<Integer> group, int digit) {
+    public Inconsistency(Group group, int digit) {
         this.group = group;
         this.digit = digit;
     }

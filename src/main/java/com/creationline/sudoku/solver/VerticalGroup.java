@@ -1,4 +1,4 @@
-package com.creationline.sudoku.validator;
+package com.creationline.sudoku.solver;
 
 import java.util.Objects;
 import java.util.stream.IntStream;
@@ -6,16 +6,16 @@ import java.util.stream.IntStream;
 /**
  * @author Kohsuke Kawaguchi
  */
-class VerticalGroup<T> extends Group<T> {
+class VerticalGroup extends Group {
     final int x;
 
-    public VerticalGroup(Board<T> board, int x) {
+    public VerticalGroup(Board board, int x) {
         super(board);
         this.x = x;
     }
 
     @Override
-    public Iterable<T> cells() {
+    public Iterable<Cell> cells() {
         return () -> IntStream.range(0,9).mapToObj(y -> board.get(x, y)).iterator();
     }
 

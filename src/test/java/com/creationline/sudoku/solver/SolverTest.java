@@ -1,52 +1,29 @@
 package com.creationline.sudoku.solver;
 
-import com.creationline.sudoku.validator.Board;
-import com.creationline.sudoku.validator.Inconsistency;
-import com.creationline.sudoku.validator.InconsistencyChecker;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.io.StringReader;
-
-import static com.creationline.sudoku.validator.InconsistencyChecker.*;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
+import static org.hamcrest.CoreMatchers.*;
 
 /**
  * @author Kohsuke Kawaguchi
  */
 public class SolverTest {
-    /**
-     * Converts board for validation to board for solution
-     */
-    private Board<Cell> toSolve(Board<Integer> i) {
-        var o = new Board<Cell>();
-        o.walk((x,y,c) -> {
-            c = new Cell(o, x, y);
-            o.set(x, y, c);
-            var n = i.get(x,y);
-            if (n!=i.EMPTY)
-                c.setTo(n);
-        });
-        return o;
-    }
-
-    private void solve(String boardRep) throws UnsolvableBoardException, IOException {
-        var b = Board.read(new StringReader(boardRep));
+    private void solve(String s) throws UnsolvableBoardException {
+        var b = Board.read(s);
 
         System.out.println(b);
-
-        new Solver().solve(toSolve(b));
-
+        new Solver().solve(b);
         System.out.println(b);
 
-//        // if the solution is correct there shouldn't be any digits conflicting with each other
-//        assertThat((int)b.findInconsistencies().count(), is(0));
+        // if the solution is correct there shouldn't be any digits conflicting with each other
+        Assert.assertThat(b.findInconsistencies().count(), is(0L));
     }
 
     @Test
-    public void firstTry() throws Exception {
+    public void firstTry() throws UnsolvableBoardException {
         solve("""
             53..7....
             6..195...
@@ -75,9 +52,9 @@ public class SolverTest {
      */
 
     @Test
-    public void medium() throws Exception {
+    public void medium() throws UnsolvableBoardException {
         // solution
-        var x = Board.read(new StringReader("""
+        var x = Board.read("""
             374965821
             182374569
             956128437
@@ -87,8 +64,8 @@ public class SolverTest {
             463857192
             215496783
             897213654
-            """));
-        Assert.assertEquals(findInconsistencies(x).collect(toList()), emptyList());
+            """);
+        Assert.assertEquals(x.findInconsistencies().collect(toList()), emptyList());
 
         // this one has multiple solutions!
         solve("""
@@ -106,7 +83,7 @@ public class SolverTest {
 
 
     @Test
-    public void hard() throws Exception {
+    public void hard() throws UnsolvableBoardException {
         solve("""
             .7.53....
             8.16..2.7

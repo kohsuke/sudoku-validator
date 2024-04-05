@@ -1,7 +1,5 @@
 package com.creationline.sudoku.solver;
 
-import com.creationline.sudoku.validator.Board;
-
 /**
  * @author Kohsuke Kawaguchi
  */

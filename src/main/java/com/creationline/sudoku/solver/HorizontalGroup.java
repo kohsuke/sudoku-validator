@@ -1,4 +1,4 @@
-package com.creationline.sudoku.validator;
+package com.creationline.sudoku.solver;
 
 import java.util.Objects;
 import java.util.stream.IntStream;
@@ -6,16 +6,16 @@ import java.util.stream.IntStream;
 /**
  * @author Kohsuke Kawaguchi
  */
-class HorizontalGroup<T> extends Group<T> {
+class HorizontalGroup extends Group {
     final int y;
 
-    public HorizontalGroup(Board<T> board, int y) {
+    public HorizontalGroup(Board board, int y) {
         super(board);
         this.y = y;
     }
 
     @Override
-    public Iterable<T> cells() {
+    public Iterable<Cell> cells() {
         return () -> IntStream.range(0,9).mapToObj(x -> board.get(x,y)).iterator();
     }
 
