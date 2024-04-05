@@ -63,6 +63,27 @@ public final class Cell {
     }
 
     /**
+     * True if this cell is determined to be one digit.
+     */
+    public boolean isUnique() {
+        return possibilities.cardinality()==1;
+    }
+
+    /**
+     * Assuming this cell has to be 'd', mark other competing cells not to be 'd'
+     */
+    public void setOthersNotTo(int d) {
+        assert is(d);
+        for (var g : board.groupsOf(x,y)) {
+            for (var c : g.cells()) {
+                if (c!=this)
+                    c.eliminate(d);
+            }
+
+        }
+    }
+
+    /**
      * Returns true if 'd' is a possible value in this cell.
      */
     public boolean isPossible(int d) {

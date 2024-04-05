@@ -3,14 +3,10 @@ package com.creationline.sudoku.validator;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
 import static java.util.stream.IntStream.*;
@@ -30,7 +26,7 @@ public class Board<T> {
      * Create a new board by transforming another.
      */
     public <U> Board(Board<U> base, Function<U,T> mapper) {
-        walk((x,y) ->
+        walk((x,y,c) ->
             set(x,y,mapper.apply(base.get(x,y)))
         );
     }
@@ -113,8 +109,8 @@ public class Board<T> {
                         String.format("Line length not 9: '%s'",str));
                 for (int x = 0; x < 9; x++) {
                     char ch = str.charAt(x);
-                    if (ch == ' ') ch = '0';
-                    board.set(x, y, ch - '0');
+                    if ('1'<=ch && ch<='9')
+                        board.set(x, y, ch - '0');
                 }
             }
         }
@@ -126,19 +122,17 @@ public class Board<T> {
      */
     public Board flipDiagonal() {
         var that = new Board();
-        walk((x, y) -> {
-            that.set(y, x, this.get(x, y));
-        });
+        walk((x, y, c) -> that.set(y, x, c));
         return that;
     }
 
     /**
      * Iterates through all cells of the board.
      */
-    public void walk(BiConsumer<Integer,Integer> walker) {
+    public void walk(CellWalker<T> walker) {
         for (int y=0; y<9; y++) {
             for (int x=0; x<9; x++) {
-                walker.accept(x,y);
+                walker.visit(x,y,get(x,y));
             }
         }
     }
@@ -147,13 +141,13 @@ public class Board<T> {
      * True if every cell of the digit is filled with a number
      * and no cell returns true from {@link #isEmpty(int, int)}.
      */
-    public boolean isFull() {
-        var isEmpty = new AtomicBoolean();
-        walk((x,y) -> {
-            if (isEmpty(x,y))
-                isEmpty.set(true);
+    public boolean allCellIs(CellFunction<T,Boolean> predicate) {
+        var r = new AtomicBoolean();
+        walk((x,y,c) -> {
+            if (!predicate.apply(x,y,c))
+                r.set(false);
         });
-        return !isEmpty.get();
+        return r.get();
     }
 
     @Override

@@ -15,12 +15,12 @@ public class SolverTest {
      */
     private Board<Cell> toSolve(Board<Integer> i) {
         var o = new Board<Cell>();
-        o.walk((x,y) -> {
-            var c = new Cell(o, x, y);
+        o.walk((x,y,c) -> {
+            c = new Cell(o, x, y);
             o.set(x, y, c);
             var n = i.get(x,y);
             if (n!=i.EMPTY)
-                c.mustBe(n);
+                c.setTo(n);
         });
         return o;
     }
@@ -30,7 +30,7 @@ public class SolverTest {
 
         new Solver().solve(toSolve(b));
 
-        System.out.println(b.toString());
+        System.out.println(b);
 
 //        // if the solution is correct there shouldn't be any digits conflicting with each other
 //        assertThat((int)b.findInconsistencies().count(), is(0));
