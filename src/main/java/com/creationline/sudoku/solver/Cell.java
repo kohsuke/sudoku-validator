@@ -93,7 +93,6 @@ public final class Cell {
                 if (c!=this)
                     c.eliminate(d);
             }
-
         }
     }
 

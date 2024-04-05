@@ -15,7 +15,7 @@ public class SolverTest {
         var b = Board.read(s);
 
         System.out.println(b);
-        new Solver().solve(b);
+        b.solve();
         System.out.println(b);
 
         // if the solution is correct there shouldn't be any digits conflicting with each other

@@ -3,8 +3,8 @@ package com.creationline.sudoku.solver;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static java.util.stream.IntStream.*;
@@ -13,8 +13,6 @@ import static java.util.stream.IntStream.*;
  * @author Kohsuke Kawaguchi
  */
 public class Board {
-    // this is type unsafe but since it never leaks outside this class this is OK
-    // Array.newInstance requires an explicit type casting anyway
     private final Cell[] cells = new Cell[9*9];
 
     public Board() {
@@ -82,22 +80,21 @@ public class Board {
         return read(line.split("\n"));
     }
 
-        public static Board read(String[] lines) {
-        if (lines.length!=9)
+    public static Board read(String[] lines) {
+        if (lines.length != 9)
             throw new IllegalArgumentException();
 
         var board = new Board();
-        for (int y=0; y<9; y++) {
-            var line = lines[y].replace(" ","");    // allow input to have whitespaces
-            for (int x=0; x<9; x++) {
+        for (int y = 0; y < 9; y++) {
+            var line = lines[y].replace(" ", "");    // allow input to have whitespaces
+            for (int x = 0; x < 9; x++) {
                 char digit = line.charAt(x);
-                Cell c = board.get(x,y);
+                Cell c = board.get(x, y);
 
-                if ('1'<=digit && digit<='9') {
-                    c.setTo(digit-'0');
-                } else
-                if (digit != '.') {
-                    throw new IllegalArgumentException("Unexpected character: '"+digit+"'");
+                if ('1' <= digit && digit <= '9') {
+                    c.setTo(digit - '0');
+                } else if (digit != '.') {
+                    throw new IllegalArgumentException("Unexpected character: '" + digit + "'");
                 }
             }
         }
@@ -115,15 +112,12 @@ public class Board {
         }
     }
 
-    /**
-     * True if every cell satisfies the given predicate.
-     */
-    public boolean allCellIs(Predicate<Cell> predicate) {
-        return cells().allMatch(predicate);
+    public boolean isInconsistent() {
+        return cells().anyMatch(Cell::isVoid);
     }
 
-    public boolean anyCellIs(Predicate<Cell> predicate) {
-        return cells().anyMatch(predicate);
+    public boolean isSolved() {
+        return cells().allMatch(Cell::isUnique);
     }
 
     public Stream<Cell> cells() {
@@ -173,4 +167,63 @@ public class Board {
             .filter(Objects::nonNull);
     }
 
+    public void solve() throws UnsolvableBoardException {
+        // TODO: find a link on the internet that talks about this algorithm and point to it
+        int loop=0;
+        while (!isSolved()) {
+            if (isInconsistent())
+                throw new UnsolvableBoardException();
+
+            var madeProgress = new AtomicBoolean();
+
+            walk(c -> {
+                if (c.isUnique())
+                    return; // nothing to do
+                for (int d : c.possibilities()) {
+                    if (c.mustBe(d)) {
+                        c.setTo(d);
+                        c.setOthersNotTo(d);
+                        madeProgress.set(true);
+                    } else {
+                        boolean b = c.isPossible(d);
+                        if (!b) {
+                            if (c.eliminate(d))
+                                madeProgress.set(true);
+                        }
+                    }
+                }
+            });
+
+            System.out.println("loop #"+(++loop));
+            System.out.println(this);
+
+            if (!madeProgress.get()) {
+                // we run out of deterministic moves
+                // make a speculative move
+
+                // find a cell that we can't decide
+                var cell = cells().filter(c->!c.isUnique()).findFirst().orElseThrow();
+
+                // try each possible digit there
+                for (int d : cell.possibilities()) {
+                    var copy = new Board(this);
+                    copy.get(cell.x, cell.y).setTo(d);
+                    try {
+                        copy.solve();
+                        // `copy` was solved, now copy its final state back into `this`
+                        walk(c ->
+                            c.updateTo(copy.get(c.x,c.y))
+                        );
+                        return;
+                    } catch (UnsolvableBoardException e) {
+                        // this was a dead end, keep trying the next speculation
+                    }
+                }
+
+                // if none of the possibilities led to a solution
+                // this puzzle has no solution
+                throw new UnsolvableBoardException();
+            }
+        }
+    }
 }
