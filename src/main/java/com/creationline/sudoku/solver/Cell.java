@@ -68,9 +68,11 @@ public final class Cell {
      * True if this cell is determined to be one digit.
      */
     public boolean isUnique() {
-        var c = possibilities.cardinality();
-        assert c > 0;
-        return c == 1;
+        return possibilities.cardinality() == 1;
+    }
+
+    public boolean isVoid() {
+        return possibilities.cardinality()==0;
     }
 
     public Optional<Integer> uniqueDigit() {

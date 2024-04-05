@@ -148,6 +148,10 @@ public class Board<T> {
         return r.get();
     }
 
+    public boolean anyCellIs(CellFunction<T,Boolean> predicate) {
+        return !allCellIs((x,y,c) -> !predicate.apply(x,y,c));
+    }
+
     /**
      * Formats this board into a string by formatting individual cells.
      * The printer is expected to produce the same dimension for every cell.

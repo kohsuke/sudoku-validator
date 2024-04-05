@@ -11,10 +11,8 @@ public class Solver {
     public void solve(Board<Cell> board) throws UnsolvableBoardException {
         // TODO: find a link on the internet that talks about this algorithm and point to it
         int loop=0;
-        while (!board.allCellIs((x,y,c) -> c.isUnique())) {
+        while (!solved(board) && !inconsistent(board)) {
             var madeProgress = new AtomicBoolean();
-            System.out.println("loop #"+(loop++));
-            System.out.println(board.toString(Cell.PRINTER));
 
             board.walk((x, y, c) -> {
                 if (c.isUnique())
@@ -34,10 +32,22 @@ public class Solver {
 
                 }
             });
+
+            System.out.println("loop #"+(++loop));
+            System.out.println(board.toString(Cell.PRINTER));
+
             if (!madeProgress.get()) {
                 throw new UnsolvableBoardException(board);
             }
         }
+    }
+
+    private boolean inconsistent(Board<Cell> board) {
+        return board.anyCellIs((x, y, c) -> c.isVoid());
+    }
+
+    private boolean solved(Board<Cell> board) {
+        return board.allCellIs((x, y, c) -> c.isUnique());
     }
 
 }
