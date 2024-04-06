@@ -37,20 +37,6 @@ public class SolverTest {
             """);
     }
 
-    /*
-        var b = Board.read(new String[]{
-            ".........",
-            ".........",
-            ".........",
-            ".........",
-            ".........",
-            ".........",
-            ".........",
-            ".........",
-            "........."
-        });
-     */
-
     @Test
     public void medium() throws UnsolvableBoardException {
         // solution
@@ -96,4 +82,19 @@ public class SolverTest {
             ......5..
             """);
     }
+
+    /*
+        var b = Board.read(new String[]{
+            ".........",
+            ".........",
+            ".........",
+            ".........",
+            ".........",
+            ".........",
+            ".........",
+            ".........",
+            "........."
+        });
+     */
+
 }

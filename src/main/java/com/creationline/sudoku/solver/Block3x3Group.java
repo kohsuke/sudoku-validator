@@ -1,26 +1,16 @@
 package com.creationline.sudoku.solver;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 /**
- * @author Kohsuke Kawaguchi
+ * Group of digits that represent a 3x3 block
+ *
+ * @param x
+ *      x={0,3,6}
+ * @param y
+ *      Ditto
  */
-class Block3x3Group extends Group {
-    private final int x;
-    private final int y;
-
-    /**
-     * @param x
-     *      x={0,3,6}
-     */
-    public Block3x3Group(Board board, int x, int y) {
-        super(board);
-        assert x%3==0 && y%3==0;
-        this.x = x;
-        this.y = y;
-    }
-
+record Block3x3Group(Board board, int x, int y) implements Group {
     @Override
     public Iterable<Cell> cells() {
 //        return IntStream.range(0,9).map(i -> board.get(x+i/3,y+i%3));
@@ -32,24 +22,5 @@ class Block3x3Group extends Group {
             }
         }
         return cells;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("%s@%dx%d", getClass().getSimpleName(), x, y);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Block3x3Group that = (Block3x3Group) o;
-        return x == that.x &&
-            y == that.y;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(x, y);
     }
 }

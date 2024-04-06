@@ -37,7 +37,7 @@ public final class Cell {
      * Returns true if this cell can be possibly the given digit.
      */
     public boolean canBe(int digit) {
-        assert 0<=digit && digit<9;
+        assert 1<=digit && digit<=9;
         return possibilities.get(digit);
     }
 
