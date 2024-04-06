@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 import static java.util.stream.IntStream.*;
 
 /**
- * @author Kohsuke Kawaguchi
+ * Represents the 9x9 Sudoku game board.
  */
 public class Board {
     private final Cell[] cells = new Cell[9*9];

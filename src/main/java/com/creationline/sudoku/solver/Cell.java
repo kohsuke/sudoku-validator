@@ -65,7 +65,7 @@ public final class Cell {
      * Returns true if this cell can only be one digit and that digit is d.
      */
     public boolean is(int d) {
-        return possibilities.cardinality()==1 && canBe(d);
+        return isUnique() && canBe(d);
     }
 
     /**
@@ -75,10 +75,16 @@ public final class Cell {
         return possibilities.cardinality() == 1;
     }
 
+    /**
+     * True if this cell cannot be any of the digits, which indicates the sudoku is not solvable.
+     */
     public boolean isVoid() {
         return possibilities.cardinality()==0;
     }
 
+    /**
+     * If this cell has already been determined to be a specific digit, return it, or else empty.
+     */
     public Optional<Integer> uniqueDigit() {
         return isUnique() ? Optional.of(possibilities.nextSetBit(0)) : Optional.empty();
     }
