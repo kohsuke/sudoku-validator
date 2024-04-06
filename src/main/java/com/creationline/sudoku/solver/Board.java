@@ -1,8 +1,7 @@
 package com.creationline.sudoku.solver;
 
-import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -24,6 +23,10 @@ public class Board {
 
     public Board(Board src) {
         this();
+        updateTo(src);
+    }
+
+    private void updateTo(Board src) {
         src.walk(c -> get(c.x,c.y).updateTo(c));
     }
 
@@ -174,66 +177,63 @@ public class Board {
      *     <li>If there's a digit that none of the other cells in a group can be, then the cell's value must be that.
      * </ul>
      * <p>
-     * This is probably slower than the algorithm that "pushes" the constraint out as we make changes through
-     * the board, for example by maintaining the queue of cells, but 
+     * We maintain the mental list of cells we need to revisit for updates, and
+     * every time we update something somewhere, we put work back into this queue.
+     * <p>
+     * When we can no longer update the board with this elimination technique, we
+     * make a speculative move by "okay, this cell can be 1 or 3, but let's pretend we know that it's 1 and
+     * see if we can arrive to a solution", then backtrack if this results in an unsolvable board.
      */
     public void solve() throws UnsolvableBoardException {
-        // TODO: find a link on the internet that talks about this algorithm and point to it
-        int loop=0;
-        while (!isSolved()) {
-            if (isInconsistent())
-                throw new UnsolvableBoardException();
+        var queue = new LinkedHashSet<Cell>();
 
-            var madeProgress = new AtomicBoolean();
+        cells().forEach(queue::add);
 
-            walk(c -> {
-                if (c.isUnique())
-                    return; // nothing to do
+        while (!queue.isEmpty()) {
+            var c = queue.removeFirst();
+
+            c.uniqueDigit().ifPresentOrElse(u -> // if this cell has its digit already determined, no other cells can be of that value
+                c.allOtherCells().forEach(cc -> {
+                    if (cc.eliminate(u))
+                        queue.add(cc);
+            }), () -> {// or else
                 for (int d : c.possibilities()) {
                     if (c.mustBe(d)) {
                         c.setTo(d);
-                        c.setOthersNotTo(d);
-                        madeProgress.set(true);
-                    } else {
-                        boolean b = c.isPossible(d);
-                        if (!b) {
-                            if (c.eliminate(d))
-                                madeProgress.set(true);
-                        }
+                        queue.add(c);  // reprocess this to propagate this constraint to other cells
                     }
                 }
             });
+        }
 
-            System.out.println("loop #"+(++loop));
-            System.out.println(this);
+        if (isSolved())
+            return;
 
-            if (!madeProgress.get()) {
-                // we run out of deterministic moves
-                // make a speculative move
+        if (isInconsistent())
+            throw new UnsolvableBoardException();
 
-                // find a cell that we can't decide
-                var cell = cells().filter(c->!c.isUnique()).findFirst().orElseThrow();
+        // we run out of deterministic moves
+        // make a speculative move
 
-                // try each possible digit there
-                for (int d : cell.possibilities()) {
-                    var copy = new Board(this);
-                    copy.get(cell.x, cell.y).setTo(d);
-                    try {
-                        copy.solve();
-                        // `copy` was solved, now copy its final state back into `this`
-                        walk(c ->
-                            c.updateTo(copy.get(c.x,c.y))
-                        );
-                        return;
-                    } catch (UnsolvableBoardException e) {
-                        // this was a dead end, keep trying the next speculation
-                    }
-                }
+        // find a cell that we can't decide
+        var cell = cells().filter(c->!c.isUnique()).findFirst().orElseThrow();
 
-                // if none of the possibilities led to a solution
-                // this puzzle has no solution
-                throw new UnsolvableBoardException();
+        // try each possible digit speculatively
+        for (int d : cell.possibilities()) {
+            var copy = new Board(this);
+            copy.get(cell.x, cell.y).setTo(d);
+            try {
+                copy.solve();
+                // `copy` was solved, now copy its final state back into `this`
+                updateTo(copy);
+                return;
+            } catch (UnsolvableBoardException e) {
+                // this was a dead end, keep trying the next speculation
             }
         }
+
+        // if none of the possibilities led to a solution
+        // this puzzle has no solution
+        throw new UnsolvableBoardException();
     }
 }

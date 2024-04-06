@@ -63,13 +63,6 @@ public final class Cell {
     }
 
     /**
-     * Returns true if this cell can only be one digit and that digit is d.
-     */
-    public boolean is(int d) {
-        return isUnique() && canBe(d);
-    }
-
-    /**
      * True if this cell is determined to be one digit.
      */
     public boolean isUnique() {
@@ -91,17 +84,9 @@ public final class Cell {
     }
 
     /**
-     * Assuming this cell has to be 'd', mark other competing cells not to be 'd'
-     */
-    public void setOthersNotTo(int d) {
-        assert is(d);
-        allOtherCells().forEach(c -> c.eliminate(d));
-    }
-
-    /**
      * List up all other cells across all three constraint groups.
      */
-    private Stream<Cell> allOtherCells() {
+    public Stream<Cell> allOtherCells() {
         return board.groupsAt(x,y).flatMap(this::otherCellsOf);
     }
 
@@ -110,14 +95,6 @@ public final class Cell {
      */
     private Stream<Cell> otherCellsOf(Group g) {
         return g.cells().filter(c -> c!=this);
-    }
-
-    /**
-     * Returns true if 'd' is a possible value in this cell.
-     */
-    public boolean isPossible(int d) {
-        // if another mutually exclusive cell is already 'd' then clearly that's not possible
-        return allOtherCells().noneMatch(c -> c.is(d));
     }
 
     /**
