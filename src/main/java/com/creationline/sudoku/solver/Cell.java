@@ -2,6 +2,7 @@ package com.creationline.sudoku.solver;
 
 import java.util.BitSet;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Keeps track of what digits are possible for a cell.
@@ -94,12 +95,21 @@ public final class Cell {
      */
     public void setOthersNotTo(int d) {
         assert is(d);
-        for (var g : board.groupsAt(x,y)) {
-            for (var c : g.cells()) {
-                if (c!=this)
-                    c.eliminate(d);
-            }
-        }
+        allOtherCells().forEach(c -> c.eliminate(d));
+    }
+
+    /**
+     * List up all other cells across all three constraint groups.
+     */
+    private Stream<Cell> allOtherCells() {
+        return board.groupsAt(x,y).flatMap(this::otherCellsOf);
+    }
+
+    /**
+     * List up other 8 cells of a given constraint group
+     */
+    private Stream<Cell> otherCellsOf(Group g) {
+        return g.cells().filter(c -> c!=this);
     }
 
     /**
@@ -107,13 +117,7 @@ public final class Cell {
      */
     public boolean isPossible(int d) {
         // if another mutually exclusive cell is already 'd' then clearly that's not possible
-        for (var g : board.groupsAt(x,y)) {
-            for (var c : g.cells()) {
-                if (c!=this && c.is(d))
-                    return false;
-            }
-        }
-        return true;
+        return allOtherCells().noneMatch(c -> c.is(d));
     }
 
     /**
@@ -122,19 +126,11 @@ public final class Cell {
      * TODO: reduce strength. Maybe document this further.
      */
     public boolean mustBe(int d) {
-        for (var g : board.groupsAt(x,y)) {
-            if (mustBe(d, g))
-                return true;
-        }
-        return false;
+        return board.groupsAt(x,y).anyMatch(g -> mustBe(d,g));
     }
 
     private boolean mustBe(int d, Group g) {
-        for (var c : g.cells()) {
-            if (c!=this && c.canBe(d))
-                return false;
-        }
-        return true;
+        return otherCellsOf(g).noneMatch(c -> c.canBe(d));
     }
 
     // TODO: int[] is a waste of memory

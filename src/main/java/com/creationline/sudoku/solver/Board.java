@@ -1,7 +1,6 @@
 package com.creationline.sudoku.solver;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -52,28 +51,26 @@ public class Board {
             throw new IllegalArgumentException("Value out of range: "+i);
     }
 
-    public Stream<Group> listConstraintGroup() {
-        // TODO: range(0,9) x3 is redundant
-        return concat(
-            range(0,9).mapToObj(i -> new HorizontalGroup(this,i)),
-            range(0,9).mapToObj(i -> new VerticalGroup(this,i)),
-            range(0,9).mapToObj(i -> new Block3x3Group(this,(i/3)*3,(i%3)*3)));
+    /**
+     * List all the 9x3 constraint groups on this board.
+     */
+    public Stream<Group> listGroups() {
+        return range(0,9).boxed().flatMap(i -> Stream.of(
+            new HorizontalGroup(this,i),
+            new VerticalGroup(this,i),
+            new Block3x3Group(this,(i/3)*3,(i%3)*3)
+        ));
     }
 
     /**
      * Find three groups that govern the given cell.
      */
-    public Iterable<Group> groupsAt(int x, int y) {
-        return List.of(
+    public Stream<Group> groupsAt(int x, int y) {
+        return Stream.of(
             new HorizontalGroup(this, y),
             new VerticalGroup(this, x),
             new Block3x3Group(this, (x / 3) * 3, (y / 3) * 3)
         );
-    }
-
-    @SafeVarargs
-    private static <T> Stream<T> concat(Stream<T>... items) {
-        return Arrays.stream(items).reduce(Stream.empty(), Stream::concat);
     }
 
     public static Board read(String line) {
@@ -149,11 +146,11 @@ public class Board {
     }
 
     public Stream<Inconsistency> findInconsistencies() {
-        return listConstraintGroup()
-            .map(g -> {
+        return listGroups()
+            .flatMap(g -> {
                 boolean[] present = new boolean[10];
 
-                for (Cell c : g.cells()) {
+                return g.cells().map(c -> {
                     var u = c.uniqueDigit();
                     if (u.isPresent()) {
                         int digit = u.get();
@@ -161,12 +158,25 @@ public class Board {
                             return new Inconsistency(g, digit);
                         present[digit] = true;
                     }
-                }
-                return null;
+                    return null;
+                });
             })
             .filter(Objects::nonNull);
     }
 
+    /**
+     * Solves this sudoku.
+     *
+     * <p>
+     * The general approach is to make progress by elimination, just like humans do.
+     * <ul>
+     *     <li>If a cell's digit is already known, cross off that digit from other cells in the relevant groups
+     *     <li>If there's a digit that none of the other cells in a group can be, then the cell's value must be that.
+     * </ul>
+     * <p>
+     * This is probably slower than the algorithm that "pushes" the constraint out as we make changes through
+     * the board, for example by maintaining the queue of cells, but 
+     */
     public void solve() throws UnsolvableBoardException {
         // TODO: find a link on the internet that talks about this algorithm and point to it
         int loop=0;
