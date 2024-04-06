@@ -1,17 +1,14 @@
 package com.creationline.sudoku.solver;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-import static java.util.Collections.*;
-import static java.util.stream.Collectors.*;
-import static org.hamcrest.CoreMatchers.*;
+import static com.google.common.truth.Truth.*;
 
 /**
  * @author Kohsuke Kawaguchi
  */
 public class SolverTest {
-    private void solve(String s) throws UnsolvableBoardException {
+    private Board solve(String s) throws UnsolvableBoardException {
         var b = Board.read(s);
 
         System.out.println(b);
@@ -19,7 +16,8 @@ public class SolverTest {
         System.out.println(b);
 
         // if the solution is correct there shouldn't be any digits conflicting with each other
-        Assert.assertThat(b.findInconsistencies().count(), is(0L));
+        assertThat(b.findInconsistencies()).isEmpty();
+        return b;
     }
 
     @Test
@@ -51,7 +49,7 @@ public class SolverTest {
             215496783
             897213654
             """);
-        Assert.assertEquals(x.findInconsistencies().collect(toList()), emptyList());
+        assertThat(x.findInconsistencies()).isEmpty();
 
         // this one has multiple solutions!
         solve("""
@@ -83,18 +81,32 @@ public class SolverTest {
             """);
     }
 
-    /*
-        var b = Board.read(new String[]{
-            ".........",
-            ".........",
-            ".........",
-            ".........",
-            ".........",
-            ".........",
-            ".........",
-            ".........",
-            "........."
-        });
-     */
+    @Test
+    public void fromLeetCode() {
+        solve("""
+            53..7....
+            6..195...
+            .98....6.
+            8...6...3
+            4..8.3..1
+            7...2...6
+            .6....28.
+            ...419..5
+            ....8..79
+            """);
+    }
 
+    /*
+        solve("""
+            .........
+            .........
+            .........
+            .........
+            .........
+            .........
+            .........
+            .........
+            .........
+            """);
+     */
 }

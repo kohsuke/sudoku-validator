@@ -1,14 +1,11 @@
 package com.creationline.sudoku.solver;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
-import static java.util.Collections.*;
-import static java.util.stream.Collectors.*;
+import static com.google.common.truth.Truth.*;
 
 /**
  * What needs to be covered in these tests?
@@ -32,7 +29,7 @@ public class AppTest
             "....8..79"
         });
 
-        Assert.assertEquals(b.findInconsistencies().collect(toList()), emptyList());
+        assertThat(b.findInconsistencies()).isEmpty();
     }
 
     /**
@@ -46,8 +43,7 @@ public class AppTest
                     ".1. ... .1.",
                     repeat(9-y-1,"........."));
 
-            assertInconsistenciesOf(b,
-                new Inconsistency(new HorizontalGroup(b, y), 1));
+            assertThat(b.findInconsistencies()).containsExactly(new Inconsistency(new HorizontalGroup(b, y), 1));
         }
     }
 
@@ -63,16 +59,8 @@ public class AppTest
                 repeat(9-y-1,"........."));
             b = b.flipDiagonal();
 
-            assertInconsistenciesOf(b,
-                new Inconsistency(new VerticalGroup(b, y), 1));
+            assertThat(b.findInconsistencies()).containsExactly(new Inconsistency(new VerticalGroup(b, y), 1));
         }
-    }
-
-    void assertInconsistenciesOf(Board b, Inconsistency... expected) {
-        Assert.assertEquals(
-            List.of(expected),
-            b.findInconsistencies().collect(toList())
-        );
     }
 
     Board board(Object... rows) {

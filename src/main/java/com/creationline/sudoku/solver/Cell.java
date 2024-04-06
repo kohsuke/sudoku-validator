@@ -58,6 +58,8 @@ public final class Cell {
      * take any other digits.
      */
     public void setTo(int d) {
+        if (!canBe(d))
+            throw new UnsolvableBoardException();
         possibilities.clear();
         possibilities.set(d,true);
     }
